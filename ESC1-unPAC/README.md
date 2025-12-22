@@ -1,17 +1,38 @@
-# ESC1-unPAC
+# ESC1-unPAC BOF
 
-ADCS ESC1 exploitation BOF for Havoc and Cobalt Strike.
+Request a certificate with arbitrary SAN (and SID to bypass [KB5014754](https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16) AKA Strong Mapping), authenticate via PKINIT, and extract the NT hash
 
-**Complete attack chain:** ESC1 → PKINIT → UnPAC-the-hash
+---
 
 ## Demo
 
-https://github.com/RayRRT/ESC1-unPAC/raw/refs/heads/main/esc1unpac.mp4
+### Havoc:
+
+https://github.com/user-attachments/assets/806cfbed-2d64-4256-bc2b-0f93bc6c8e08
+
+### CS:
+https://github.com/user-attachments/assets/9ecfdfbc-4300-482e-9229-69d7fcd6dcd8
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **ESC1 Exploitation** | Request certificates with arbitrary Subject Alternative Name |
+| **KB5014754 Bypass** | Automatic SID inclusion for Strong Certificate Mapping |
+| **PKINIT Authentication** | Full RFC 4556 implementation with DH key exchange |
+| **UnPAC-the-hash** | Extract NT hash from PAC credentials |
+| **U2U Fallback** | User-to-User when PA-PAC-CREDENTIALS unavailable |
+| **Single BOF** | Complete attack chain in one command |
+| **Rubeus Compatible** | Kirbi output works with Rubeus/Mimikatz |
+
+---
 
 ## Build
 
 ```bash
-git clone https://github.com/RayRRT/BOFs.git && cd ESC1-unPAC && chmod +x build.sh && ./build.sh
+git clone https://github.com/RayRRT/ESC1-unPAC.git && cd ESC1-unPAC && chmod +x build.sh && ./build.sh
 ```
 
 ## Usage
@@ -29,7 +50,7 @@ esc1-unpac <CA> <Template> <UPN> [KDC]
 
 ### Example
 ```
-esc1-unpac EVILCA1.evilcorp.net\\evilcorp-EVILCA1-CA ESC1Template administrator@evilcorp.net
+esc1-unpac EVILCA1.evilcorp.net\evilcorp-EVILCA1-CA ESC1Template administrator@evilcorp.net
 ```
 
 ## Output
@@ -42,3 +63,13 @@ esc1-unpac EVILCA1.evilcorp.net\\evilcorp-EVILCA1-CA ESC1Template administrator@
 
 - [Certified Pre-Owned - SpecterOps](https://posts.specterops.io/certified-pre-owned-d95910965cd2)
 - [KB5014754 - Strong Certificate Mapping](https://support.microsoft.com/en-us/topic/kb5014754)
+
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is intended for authorized security testing and educational purposes only. Unauthorized access to computer systems is illegal. Always obtain proper authorization before testing.
+
+---
+
