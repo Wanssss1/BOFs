@@ -7,8 +7,7 @@ Cross-session command execution BOF for Cobalt Strike using IHxHelpPaneServer CO
 
 ### CS:
 
-https://github.com/user-attachments/assets/246316f0-c55c-42d9-bc25-42caf9dd5d0b
-
+https://github.com/user-attachments/assets/256c872a-6ee2-4070-a0cd-98ee57f90409
 
 ## Build
 
