@@ -9,7 +9,7 @@ Beacon Object Files (BOFs) for Cobalt Strike and Havoc C2. Implementations of Ac
 | BOF | Description | Attack Chain |
 |-----|-------------|--------------|
 | [ESC1-unPAC](./ESC1-unPAC) | ADCS ESC1 exploitation | ESC1 → PKINIT → UnPAC-the-hash |
-| [ShadowCredsBOF](./ShadowCredsBOF) | Shadow Credentials attack | KeyCredential → PKINIT → NT Hash |
+| [ShadowCredsBOF](./ShadowCreds-unPAC-BOF) | Shadow Credentials attack | KeyCredential → PKINIT → NT Hash |
 | [IHxExec-BOF](./IHxExec-BOF) | Cross-session command execution | IHxHelpPaneServer COM hijacking |
 
 ## Learning BOFs
