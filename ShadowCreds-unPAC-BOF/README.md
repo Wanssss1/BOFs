@@ -2,7 +2,7 @@
 
 Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 
-**Complete attack chain:** Shadow Credentials → PKINIT → UnPAC-the-hash
+**Complete attack chain:** Shadow Credentials → PKINIT → UnPAC-the-hash → Cleanup msDS-KeyCredentialLink
 
 ## Demo
 
