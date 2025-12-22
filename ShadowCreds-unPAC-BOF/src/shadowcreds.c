@@ -8,8 +8,8 @@
  * 4. PKINIT - Authenticate to KDC using the certificate
  * 5. UnPAC-the-hash - Extract NT hash from PAC credentials
  *
- * Author: Based on SpicyAD
- * References: Whisker, DSInternals, Rubeus
+ * Author: Based on SpicyAD, @_RayRT
+ * References: Whisker, DSInternals, Rubeus..
  */
 
 #ifndef STANDALONE
