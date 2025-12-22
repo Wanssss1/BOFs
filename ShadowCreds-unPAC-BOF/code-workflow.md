@@ -1,6 +1,6 @@
 # ShadowCredsBOF
 
-Shadow Credentials attack BOF for Cobalt Strike and Havoc.
+Shadow Credentials attack BOF for Cobalt Strike.
 
 **Complete attack chain:**
 1. **Shadow Credentials** - Write KeyCredential to msDS-KeyCredentialLink
@@ -15,9 +15,6 @@ git clone https://github.com/RayRRT/BOFs.git && cd BOFs/ShadowCreds-unPAC-BOF &&
 
 # In Cobalt Strike
 shadowcreds Administrator corp.local
-
-# In Havoc
-inline-execute shadowcreds.x64.o Administrator corp.local dc01.corp.local
 ```
 
 ## Output
@@ -708,11 +705,6 @@ BOF_CFLAGS = -c -DBOF
 
 ### Cobalt Strike
 1. Script Manager → Load → `shadowcreds.cna`
-
-### Havoc
-```
-inline-execute /path/to/shadowcreds.x64.o <target> <domain> [kdc]
-```
 
 ### Basic
 ```
