@@ -7,7 +7,7 @@ Cross-session command execution BOF for Cobalt Strike using IHxHelpPaneServer CO
 ## Build
 
 ```bash
-git clone https://github.com/RayRRT/IHxExec-BOF.git && cd IHxExec-BOF && chmod +x build.sh && ./build.sh
+git clone https://github.com/RayRRT/BOFs.git && cd IHxExec-BOF && chmod +x build.sh && ./build.sh
 ```
 
 ## Usage
