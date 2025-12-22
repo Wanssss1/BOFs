@@ -6,7 +6,7 @@ Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 
 ## Demo
 
-<!-- Add video link here -->
+https://github.com/user-attachments/assets/d299c9e4-7bc6-4f63-9023-1574d031de52
 
 ## Build
 
