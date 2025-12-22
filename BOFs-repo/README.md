@@ -18,32 +18,4 @@ Beacon Object Files (BOFs) for Cobalt Strike and Havoc C2. Implementations of Ac
 |-----|-------------|
 | [CustomBOFs](./CustomBOFs) | Basic enumeration BOFs for learning purposes (whoami, LDAP queries, share finder, ESC1 finder) |
 
-## Quick Reference
-
-### ESC1-unPAC
-```bash
-# Build
-cd ESC1-unPAC && ./build.sh
-
-# Usage
-esc1-unpac CA\\CAName TemplateName user@domain.local
-```
-
-### ShadowCredsBOF
-```bash
-# Build
-cd ShadowCredsBOF && make bof
-
-# Usage
-shadowcreds TargetUser domain.local
-```
-
-### IHxExec-BOF
-```bash
-# Build
-cd IHxExec-BOF && ./build.sh
-
-# Usage
-sessions
-ihxexec <session_id> C:\path\to\binary.exe
-```
+**Credits:** References to the original researchers and community projects are included in each BOF's README.
