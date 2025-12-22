@@ -1,6 +1,6 @@
 # ShadowCreds-unPAC-BOF
 
-Shadow Credentials attack BOF for Cobalt Strike and Havoc.
+Shadow Credentials attack BOF for Cobalt Strike.
 
 > **Note:** This code was developed using my knowledge of Windows internals, Kerberos, and Active Directory, with assistance from Claude Code. It is the researcher's responsibility to understand and improve the code according to their needs.
 
@@ -20,11 +20,6 @@ git clone https://github.com/RayRRT/BOFs.git && cd ShadowCreds-unPAC-BOF && make
 
 ### Cobalt Strike
 1. Script Manager → Load → `shadowcreds.cna`
-
-### Havoc
-```
-inline-execute /path/to/shadowcreds.x64.o <target> <domain> [kdc]
-```
 
 ### Command
 ```
