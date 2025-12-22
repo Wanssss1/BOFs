@@ -1,6 +1,6 @@
 # ShadowCredsBOF
 
-Shadow Credentials attack BOF for Cobalt Strike and Havoc.
+Shadow Credentials attack BOF for Cobalt Strike.
 
 **Complete attack chain:**
 1. **Shadow Credentials** - Write KeyCredential to msDS-KeyCredentialLink
@@ -11,13 +11,11 @@ Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 
 ```bash
 # On Kali
-git clone https://github.com/RayRRT/ShadowCredsBOF.git && cd ShadowCredsBOF && make bof
+git clone https://github.com/RayRRT/BOFs.git && cd ShadowCreds-unPAC-BOF && make bof
 
 # In Cobalt Strike
-shadowcreds Administrator corp.local
+shadowcreds EVILDEV$ corp.local xxx.xxx.xxx.xxx
 
-# In Havoc
-inline-execute shadowcreds.x64.o Administrator corp.local dc01.corp.local
 ```
 
 ## Output
