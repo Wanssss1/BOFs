@@ -750,3 +750,5 @@ shadowcreds Administrator corp.local dc01.corp.local
 - [MS-ADTS - KeyCredentialLink](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts)
 - [Certified Pre-Owned - SpecterOps](https://posts.specterops.io/certified-pre-owned-d95910965cd2)
 - [KB5014754](https://support.microsoft.com/en-us/topic/kb5014754)
+- [Whisker/pyWhisker](https://github.com/eladshamir/Whisker)
+- [Elad Samir, Shadow credentials](https://eladshamir.com/2021/06/21/Shadow-Credentials.html)
