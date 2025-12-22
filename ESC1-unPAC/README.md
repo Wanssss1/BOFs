@@ -11,7 +11,7 @@ https://github.com/RayRRT/ESC1-unPAC/raw/refs/heads/main/esc1unpac.mp4
 ## Build
 
 ```bash
-git clone https://github.com/RayRRT/ESC1-unPAC.git && cd ESC1-unPAC && chmod +x build.sh && ./build.sh
+git clone https://github.com/RayRRT/BOFs.git && cd ESC1-unPAC && chmod +x build.sh && ./build.sh
 ```
 
 ## Usage
