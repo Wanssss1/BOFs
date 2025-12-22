@@ -1,4 +1,4 @@
-# ShadowCredsBOF
+# ShadowCreds-unPAC-BOF
 
 Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 
