@@ -4,12 +4,12 @@
  * Complete attack chain in a single BOF:
  * 1. Generate RSA keypair and self-signed certificate with UPN/SID
  * 2. Build KeyCredential blob (msDS-KeyCredentialLink format)
- * 3. Write to target's msDS-KeyCredentialLink via LDAP
+ * 3. Write to target's msDS-KeyCredentialLink via LDAP (obfuscated)
  * 4. PKINIT - Authenticate to KDC using the certificate
  * 5. UnPAC-the-hash - Extract NT hash from PAC credentials
  *
  * Author: Based on SpicyAD, @_RayRT
- * References: Whisker, DSInternals, Rubeus..
+ * References: Whisker, DSInternals, Rubeus... you know
  */
 
 #ifndef STANDALONE
