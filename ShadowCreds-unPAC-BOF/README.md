@@ -11,7 +11,7 @@ Shadow Credentials attack BOF for Cobalt Strike and Havoc.
 ## Build
 
 ```bash
-git clone https://github.com/RayRRT/BOFs.git && cd ShadowCredsBOF && make bof
+git clone https://github.com/RayRRT/ShadowCredsBOF.git && cd ShadowCreds-unPAC-BOF && make bof
 ```
 
 ## Usage
