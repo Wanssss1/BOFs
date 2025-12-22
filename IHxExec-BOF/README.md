@@ -4,6 +4,12 @@ Cross-session command execution BOF for Cobalt Strike using IHxHelpPaneServer CO
 
 **Execute binaries in another user's session without process injection.**
 
+
+### CS:
+
+https://github.com/user-attachments/assets/246316f0-c55c-42d9-bc25-42caf9dd5d0b
+
+
 ## Build
 
 ```bash
