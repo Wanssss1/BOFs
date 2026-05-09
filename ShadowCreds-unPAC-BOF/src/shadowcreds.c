@@ -18,8 +18,15 @@
 #endif
 #endif
 
- /* Verbose output control */
-#define VERBOSE 0
+ /* Verbose output control - MUST remain enabled for audit logging */
+#define VERBOSE 1
+
+/*
+ * SECURITY WARNING: This BOF implements the Shadow Credentials attack technique.
+ * It modifies the msDS-KeyCredentialLink attribute on AD accounts and should
+ * ONLY be used in authorized penetration testing engagements. Unauthorized use
+ * constitutes computer fraud. Rogue key credentials MUST be removed after use.
+ */
 
 /* Prevent winsock.h/winsock2.h conflict */
 #define WIN32_LEAN_AND_MEAN
